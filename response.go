@@ -18,7 +18,7 @@ func Success(c *gin.Context) {
 // Return error status 200 with a specific message
 func SuccessWithMessage(c *gin.Context, message interface{}) {
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "FAILED",
+		"status":  "SUCCESS",
 		"message": message,
 	})
 }
