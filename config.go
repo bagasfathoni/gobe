@@ -7,10 +7,12 @@ import (
 )
 
 type Config struct {
-	SqlConfig   SqlBaseConfig   `mapstructure:"sql" json:"sql"`
-	MongoConfig MongoBaseConfig `mapstructure:"mongo" json:"mongo"`
-	RedisConfig RedisBaseConfig `mapstructure:"redis" json:"redis"`
+	ApiConfig   RestApiBaseConfig `mapstructure:"restapi" json:"restapi"`
+	SqlConfig   SqlBaseConfig     `mapstructure:"sql" json:"sql"`
+	MongoConfig MongoBaseConfig   `mapstructure:"mongo" json:"mongo"`
+	RedisConfig RedisBaseConfig   `mapstructure:"redis" json:"redis"`
 	// SwaggerConfig SwaggerBaseConfig `mapstructure:"swagger" json:"swagger"`
+	// GrpcConfig GrpcBaseConfig `mapstructure:"grpc" json:"grpc"`
 }
 
 // Get application configuration from common configuration file (e.g JSON, YAML, etc.)
