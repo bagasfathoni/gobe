@@ -49,6 +49,15 @@ func (g *GormRepository) FindByWithPreload(model interface{}, by map[string]inte
 	return model, err
 }
 
+// Find a record by using the row name and the data. Preload will get all associations in the model
+//
+//	Example:
+//	FindByWithNestedPreload(&User, map[string]interface{}{"id":1}, "User.Role") // will get result User with ID = 1
+func (g *GormRepository) FindByWithNestedPreload(model interface{}, by map[string]interface{}, nestedPreload string) (interface{}, error) {
+	err := g.Db.Preload(nestedPreload).Preload(clause.Associations).Where(by).First(&model).Error
+	return model, err
+}
+
 // Find any records by using the row name and the data.
 //
 //	Example:
@@ -66,6 +75,16 @@ func (g *GormRepository) FindAllBy(model interface{}, by map[string]interface{},
 //	FindAllByWithPreload(&User, map[string]interface{}{"name":"XXX"}, "created_at desc") // will get all User with name = "XXX"
 func (g *GormRepository) FindAllByWithPreload(model interface{}, by map[string]interface{}, orderBy string) (interface{}, error) {
 	err := g.Db.Preload(clause.Associations).Where(by).Order(orderBy).Unscoped().Find(&model).Error
+	return model, err
+}
+
+// Find any records by using the row name and the data. Preload will get all associations in the model
+//
+//	Example:
+//	FindAllByWithPreloadNestedPreload(&User, map[string]interface{}{}, "created_at desc", "User.Role") // will get all User
+//	FindAllByWithPreloadNestedPreload(&User, map[string]interface{}{"name":"XXX"}, "created_at desc", "User.Role") // will get all User with name = "XXX"
+func (g *GormRepository) FindAllByWithNestedPreload(model interface{}, by map[string]interface{}, orderBy, nestedPreload string) (interface{}, error) {
+	err := g.Db.Preload(nestedPreload).Preload(clause.Associations).Where(by).Order(orderBy).Unscoped().Find(&model).Error
 	return model, err
 }
 
@@ -91,6 +110,17 @@ func (g *GormRepository) FindAllByWithPreloadAndPagination(model interface{}, by
 	return model, err
 }
 
+// Find any records by using the row name and the data. This will limit the result to specific number and will get all associations in the model
+//
+//	Example:
+//	FindAllByWithNestedPreloadAndPagination(&User, map[string]interface{}{}, 1, 10, "created_at desc", "User.Role") // will get the first 10 User in the column
+//	FindAllByWithNestedPreloadAndPagination(&User, map[string]interface{}{}, 2, 10, "created_at desc", "User.Role") // will get the next 10 User in the column
+//	FindAllByWithNestedPreloadAndPagination(&User, map[string]interface{}{"name":"XXX"}, 2, 10, "created_at desc", "User.Role") // will get the first 10 User in the column with name = "XXX"
+func (g *GormRepository) FindAllByWithNestedPreloadAndPagination(model interface{}, by map[string]interface{}, page, itemPerPage int, orderBy, nestedPreload string) (interface{}, error) {
+	err := g.Db.Preload(nestedPreload).Preload(clause.Associations).Where(by).Order(orderBy).Limit(itemPerPage).Offset(page).Find(&model).Error
+	return model, err
+}
+
 // Find any records by using custom SQL Query.
 //
 //	Example:
@@ -103,17 +133,26 @@ func (g *GormRepository) FindAllUsingCustomQuery(model interface{}, query, order
 // Find any records by using custom SQL Query. Preload will get all associations in the model
 //
 //	Example:
-//	FindAllUsingCustomQuery(&User, "name = 'XXX' AND email == 'YYY'", "created_at desc") // will get all User in the column with name = "XXX" and email = "YYY"
+//	FindAllUsingCustomQueryWithPreload(&User, "name = 'XXX' AND email == 'YYY'", "created_at desc") // will get all User in the column with name = "XXX" and email = "YYY"
 func (g *GormRepository) FindAllUsingCustomQueryWithPreload(model interface{}, query, orderBy string) (interface{}, error) {
 	err := g.Db.Preload(clause.Associations).Where(query).Order(orderBy).Unscoped().Find(&model).Error
+	return model, err
+}
+
+// Find any records by using custom SQL Query. Preload will get all associations in the model
+//
+//	Example:
+//	FindAllUsingCustomQueryWithNestedPreload(&User, "name = 'XXX' AND email == 'YYY'", "created_at desc", "User.Role") // will get all User in the column with name = "XXX" and email = "YYY"
+func (g *GormRepository) FindAllUsingCustomQueryWithNestedPreload(model interface{}, query, orderBy, nestedPreload string) (interface{}, error) {
+	err := g.Db.Preload(nestedPreload).Preload(clause.Associations).Where(query).Order(orderBy).Unscoped().Find(&model).Error
 	return model, err
 }
 
 // Find any records by using any SQL Query. This will limit the result to specific number.
 //
 //	Example:
-//	FindAllUsingCustomQuery(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 1, 10) // will get the first 10 User in the column with name = "XXX" and email = "YYY"
-//	FindAllUsingCustomQuery(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 2, 10) // will get the next 10 User in the column with name = "XXX" and email = "YYY"
+//	FindAllUsingCustomQueryWithPagination(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 1, 10) // will get the first 10 User in the column with name = "XXX" and email = "YYY"
+//	FindAllUsingCustomQueryWithPagination(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 2, 10) // will get the next 10 User in the column with name = "XXX" and email = "YYY"
 func (g *GormRepository) FindAllUsingCustomQueryWithPagination(model interface{}, query, orderBy string, page, itemPerPage int) (interface{}, error) {
 	err := g.Db.Where(query).Order(orderBy).Limit(itemPerPage).Offset(page).Find(&model).Error
 	return model, err
@@ -122,9 +161,19 @@ func (g *GormRepository) FindAllUsingCustomQueryWithPagination(model interface{}
 // Find any records by using any SQL Query. This will limit the result to specific number and will get all associations in the model
 //
 //	Example:
-//	FindAllUsingCustomQuery(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 1, 10) // will get the first 10 User in the column with name = "XXX" and email = "YYY"
-//	FindAllUsingCustomQuery(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 2, 10) // will get the next 10 User in the column with name = "XXX" and email = "YYY"
+//	FindAllUsingCustomQueryWithPreloadAndPagination(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 1, 10) // will get the first 10 User in the column with name = "XXX" and email = "YYY"
+//	FindAllUsingCustomQueryWithPreloadAndPagination(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 2, 10) // will get the next 10 User in the column with name = "XXX" and email = "YYY"
 func (g *GormRepository) FindAllUsingCustomQueryWithPreloadAndPagination(model interface{}, query, orderBy string, page, itemPerPage int) (interface{}, error) {
-	err := g.Db.Where(query).Order(orderBy).Limit(itemPerPage).Offset(page).Find(&model).Error
+	err := g.Db.Preload(clause.Associations).Where(query).Order(orderBy).Limit(itemPerPage).Offset(page).Find(&model).Error
+	return model, err
+}
+
+// Find any records by using any SQL Query. This will limit the result to specific number and will get all associations in the model
+//
+//	Example:
+//	FindAllUsingCustomQueryWithPreloadAndPagination(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 1, 10) // will get the first 10 User in the column with name = "XXX" and email = "YYY"
+//	FindAllUsingCustomQueryWithPreloadAndPagination(&User, "name = 'XXX' AND email = 'YYY'", "created_at desc", 2, 10) // will get the next 10 User in the column with name = "XXX" and email = "YYY"
+func (g *GormRepository) FindAllUsingCustomQueryWithNestedPreloadAndPagination(model interface{}, query, orderBy, nestedPreload string, page, itemPerPage int) (interface{}, error) {
+	err := g.Db.Preload(nestedPreload).Preload(clause.Associations).Where(query).Order(orderBy).Limit(itemPerPage).Offset(page).Find(&model).Error
 	return model, err
 }
